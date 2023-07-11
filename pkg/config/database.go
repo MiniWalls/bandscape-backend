@@ -70,3 +70,19 @@ func GetPosts() []Post {
 	}
 	return posts
 }
+
+func UpdatePost(updatedPost Post) string {
+	id := updatedPost.ID
+	title := updatedPost.Title
+	body := updatedPost.Body
+	res, err := db.Exec("UPDATE post SET title = ?, body = ? WHERE postid = ?", title, body, id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if rowsAffected, err := res.RowsAffected(); err == nil {
+		if rowsAffected == 0 {
+			return "No post with that id"
+		}
+	}
+	return "Post updated"
+}
