@@ -71,6 +71,15 @@ func GetPosts() []Post {
 	return posts
 }
 
+func GetPost(id string) Post {
+	var post Post
+	err := db.QueryRow("SELECT * FROM post WHERE postid = ?", id).Scan(&post.ID, &post.Title, &post.Body, &post.Datetime, &post.Userid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return post
+}
+
 func UpdatePost(updatedPost Post) string {
 	id := updatedPost.ID
 	title := updatedPost.Title
@@ -85,4 +94,17 @@ func UpdatePost(updatedPost Post) string {
 		}
 	}
 	return "Post updated"
+}
+
+func DeletePost(id string) string {
+	res, err := db.Exec("DELETE FROM post WHERE postid = ?", id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if rowsAffected, err := res.RowsAffected(); err == nil {
+		if rowsAffected == 0 {
+			return "No post with that id"
+		}
+	}
+	return "Post deleted"
 }

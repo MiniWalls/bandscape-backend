@@ -21,7 +21,19 @@ func updatePost(c *gin.Context) {
 		return
 	}
 	mydb.UpdatePost(updatedPost)
-	c.IndentedJSON(http.StatusOK, updatedPost)
+	c.IndentedJSON(http.StatusOK, "Post updated")
+}
+
+func deletePost(c *gin.Context) {
+	id := c.Param("id")
+	mydb.DeletePost(id)
+	c.IndentedJSON(http.StatusOK, "Post deleted")
+}
+
+func getPost(c *gin.Context) {
+	id := c.Param("id")
+	post := mydb.GetPost(id)
+	c.IndentedJSON(http.StatusOK, post)
 }
 
 func main() {
@@ -29,6 +41,8 @@ func main() {
 	router := gin.Default()
 	router.Use(cors.Default())
 	router.GET("/posts", getPosts)
+	router.GET("/posts/:id", getPost)
+	router.DELETE("/posts/:id", deletePost)
 	router.PUT("/post", updatePost)
 	router.Run("localhost:3001")
 	fmt.Println("Server running on port 3001")
