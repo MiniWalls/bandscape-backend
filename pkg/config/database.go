@@ -2,6 +2,7 @@ package mydb
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -53,58 +54,71 @@ func GetDB() *sql.DB {
 	return db
 }
 
-func GetPosts() []Post {
+func GetPosts() ([]Post, error) {
 	var posts []Post
 	rows, err := db.Query("SELECT * FROM post")
 	if err != nil {
-		log.Fatal(err)
+		return nil, errors.New(err.Error())
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var post Post
 		err := rows.Scan(&post.ID, &post.Title, &post.Body, &post.Datetime, &post.Userid)
 		if err != nil {
-			log.Fatal(err)
+			return nil, errors.New(err.Error())
 		}
 		posts = append(posts, post)
 	}
-	return posts
+	return posts, nil
 }
 
-func GetPost(id string) Post {
-	var post Post
+func GetPost(id string) (*Post, error) {
+	post := new(Post)
 	err := db.QueryRow("SELECT * FROM post WHERE postid = ?", id).Scan(&post.ID, &post.Title, &post.Body, &post.Datetime, &post.Userid)
 	if err != nil {
-		log.Fatal(err)
+		return nil, errors.New("No post with that id")
 	}
-	return post
+	return post, nil
 }
 
-func UpdatePost(updatedPost Post) string {
+func UpdatePost(updatedPost Post) error {
 	id := updatedPost.ID
 	title := updatedPost.Title
 	body := updatedPost.Body
 	res, err := db.Exec("UPDATE post SET title = ?, body = ? WHERE postid = ?", title, body, id)
 	if err != nil {
-		log.Fatal(err)
+		return errors.New(err.Error())
 	}
-	if rowsAffected, err := res.RowsAffected(); err == nil {
-		if rowsAffected == 0 {
-			return "No post with that id"
-		}
+	if rowsAffected, err := res.RowsAffected(); err == nil && rowsAffected == 0 {
+		return errors.New("No post with that id")
+	} else {
+		return nil
 	}
-	return "Post updated"
 }
 
-func DeletePost(id string) string {
+func DeletePost(id string) error {
 	res, err := db.Exec("DELETE FROM post WHERE postid = ?", id)
 	if err != nil {
-		log.Fatal(err)
+		return errors.New(err.Error())
 	}
-	if rowsAffected, err := res.RowsAffected(); err == nil {
-		if rowsAffected == 0 {
-			return "No post with that id"
-		}
+	if rowsAffected, err := res.RowsAffected(); err == nil && rowsAffected == 0 {
+		return errors.New("No post with that id")
+	} else {
+		return nil
 	}
-	return "Post deleted"
+}
+
+func CreatePost(post Post) error {
+	title := post.Title
+	body := post.Body
+	userid := post.Userid
+	res, err := db.Exec("INSERT INTO post (title, body, userid) VALUES (?, ?, ?)", title, body, userid)
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	if rowsAffected, err := res.RowsAffected(); err == nil && rowsAffected == 0 {
+		return errors.New("No post with that id")
+	} else {
+		return nil
+	}
 }

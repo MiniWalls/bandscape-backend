@@ -10,8 +10,12 @@ import (
 )
 
 func getPosts(c *gin.Context) {
-	posts := mydb.GetPosts()
-	c.IndentedJSON(http.StatusOK, posts)
+	posts, err := mydb.GetPosts()
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, err.Error())
+	} else {
+		c.IndentedJSON(http.StatusOK, posts)
+	}
 }
 
 func updatePost(c *gin.Context) {
@@ -20,20 +24,45 @@ func updatePost(c *gin.Context) {
 	if err := c.BindJSON(&updatedPost); err != nil {
 		return
 	}
-	mydb.UpdatePost(updatedPost)
-	c.IndentedJSON(http.StatusOK, "Post updated")
+
+	if err := mydb.UpdatePost(updatedPost); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, err.Error())
+	} else {
+		c.IndentedJSON(http.StatusOK, "Post updated")
+	}
 }
 
 func deletePost(c *gin.Context) {
 	id := c.Param("id")
-	mydb.DeletePost(id)
-	c.IndentedJSON(http.StatusOK, "Post deleted")
+
+	if err := mydb.DeletePost(id); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, err.Error())
+	} else {
+		c.IndentedJSON(http.StatusOK, "Post deleted")
+	}
+}
+
+func createPost(c *gin.Context) {
+	var newPost mydb.Post
+
+	if err := c.BindJSON(&newPost); err != nil {
+		return
+	}
+	if err := mydb.CreatePost(newPost); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, err.Error())
+	} else {
+		c.IndentedJSON(http.StatusOK, "Post created")
+	}
 }
 
 func getPost(c *gin.Context) {
 	id := c.Param("id")
-	post := mydb.GetPost(id)
-	c.IndentedJSON(http.StatusOK, post)
+	post, err := mydb.GetPost(id)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, err.Error())
+	} else {
+		c.IndentedJSON(http.StatusOK, post)
+	}
 }
 
 func main() {
@@ -42,8 +71,9 @@ func main() {
 	router.Use(cors.Default())
 	router.GET("/posts", getPosts)
 	router.GET("/posts/:id", getPost)
+	router.POST("/posts", createPost)
 	router.DELETE("/posts/:id", deletePost)
-	router.PUT("/post", updatePost)
+	router.PUT("/posts", updatePost)
 	router.Run("localhost:3001")
 	fmt.Println("Server running on port 3001")
 }
