@@ -50,10 +50,12 @@ func DbConnection() {
 	fmt.Println("Connected!")
 }
 
+// Return the database object
 func GetDB() *sql.DB {
 	return db
 }
 
+// Every function returns an error and GET functions return objects
 func GetPosts() ([]Post, error) {
 	var posts []Post
 	rows, err := db.Query("SELECT * FROM post")
@@ -72,6 +74,7 @@ func GetPosts() ([]Post, error) {
 	return posts, nil
 }
 
+// Pointer to post object, so we can return nil if no post is found
 func GetPost(id string) (*Post, error) {
 	post := new(Post)
 	err := db.QueryRow("SELECT * FROM post WHERE postid = ?", id).Scan(&post.ID, &post.Title, &post.Body, &post.Datetime, &post.Userid)
@@ -82,9 +85,12 @@ func GetPost(id string) (*Post, error) {
 }
 
 func UpdatePost(updatedPost Post) error {
+	//Get the values from the updated post
 	id := updatedPost.ID
 	title := updatedPost.Title
 	body := updatedPost.Body
+
+	//Update the post with the new values
 	res, err := db.Exec("UPDATE post SET title = ?, body = ? WHERE postid = ?", title, body, id)
 	if err != nil {
 		return errors.New(err.Error())
