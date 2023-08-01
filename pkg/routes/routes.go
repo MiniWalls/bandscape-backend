@@ -21,4 +21,10 @@ func SetupRoutes(router *gin.Engine) {
 		authRoutes.GET("", controllers.GetAuth)
 		authRoutes.GET("/login", controllers.GetToken)
 	}
+
+	lastfmRoutes := router.Group("/lastfm")
+	{
+		lastfmRoutes.GET("/track", controllers.GetTrack)
+		lastfmRoutes.GET("/album", controllers.GetAlbum)
+	}
 }
