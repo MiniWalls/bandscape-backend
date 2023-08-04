@@ -2,6 +2,7 @@ package mydb
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -13,12 +14,14 @@ import (
 
 var db *sql.DB
 
+// StringInterfaceMap is used to represent a JSON object
 type Post struct {
-	ID       int    `json:"id"`
-	Title    string `json:"title"`
-	Body     string `json:"body"`
-	Datetime string `json:"datetime"`
-	Userid   string `json:"userid"`
+	ID               int              `json:"id"`
+	Title            string           `json:"title"`
+	Body             string           `json:"body"`
+	Datetime         string           `json:"datetime"`
+	Userid           string           `json:"userid"`
+	LastfmAttachment *json.RawMessage `json:"lastfmattachment"`
 }
 
 func DbConnection() {
@@ -65,7 +68,7 @@ func GetPosts() ([]Post, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var post Post
-		err := rows.Scan(&post.ID, &post.Title, &post.Body, &post.Datetime, &post.Userid)
+		err := rows.Scan(&post.ID, &post.Title, &post.Body, &post.Datetime, &post.Userid, &post.LastfmAttachment)
 		if err != nil {
 			return nil, errors.New(err.Error())
 		}
@@ -77,9 +80,9 @@ func GetPosts() ([]Post, error) {
 // Pointer to post object, so we can return nil if no post is found
 func GetPost(id string) (*Post, error) {
 	post := new(Post)
-	err := db.QueryRow("SELECT * FROM post WHERE postid = ?", id).Scan(&post.ID, &post.Title, &post.Body, &post.Datetime, &post.Userid)
+	err := db.QueryRow("SELECT * FROM post WHERE postid = ?", id).Scan(&post.ID, &post.Title, &post.Body, &post.Datetime, &post.Userid, &post.LastfmAttachment)
 	if err != nil {
-		return nil, errors.New("No post with that id")
+		return nil, errors.New(err.Error())
 	}
 	return post, nil
 }
@@ -118,12 +121,13 @@ func CreatePost(post Post) error {
 	title := post.Title
 	body := post.Body
 	userid := post.Userid
-	res, err := db.Exec("INSERT INTO post (title, body, userid) VALUES (?, ?, ?)", title, body, userid)
+	lastfm_attachment := post.LastfmAttachment
+	res, err := db.Exec("INSERT INTO post (title, body, userid, lastfm_attachment) VALUES (?, ?, ?, CAST(? AS JSON))", title, body, userid, lastfm_attachment)
 	if err != nil {
 		return errors.New(err.Error())
 	}
 	if rowsAffected, err := res.RowsAffected(); err == nil && rowsAffected == 0 {
-		return errors.New("No post with that id")
+		return errors.New("No post was created")
 	} else {
 		return nil
 	}
