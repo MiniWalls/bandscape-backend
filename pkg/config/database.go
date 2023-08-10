@@ -27,7 +27,7 @@ type Post struct {
 func DbConnection() {
 	envErr := godotenv.Load() //Load .env file and error check
 	if envErr != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env file", envErr)
 	}
 
 	// Initialize a new connection object to database
