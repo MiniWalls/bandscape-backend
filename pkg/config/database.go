@@ -32,16 +32,31 @@ func DbConnection() {
 
 	// Initialize a new connection object to database
 	cfg := mysql.Config{
-		User:                 os.Getenv("DB_USER"),
+		/* User:                 os.Getenv("DB_USER"),
 		Passwd:               os.Getenv("DB_PASS"),
 		Net:                  "tcp",
 		Addr:                 os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT"),
 		DBName:               "bandscape",
-		AllowNativePasswords: true,
+		AllowNativePasswords: true, */
 	}
+	fmt.Println(cfg) //VSCode removing mysql driver if I dont specifically use something from mysql
+
+	// Initialize a new connection object to google MYSQL database
+	var (
+		dbUser    = os.Getenv("DB_USER")
+		dbPwd     = os.Getenv("DB_PASS")
+		dbName    = os.Getenv("DB_NAME")
+		dbPort    = os.Getenv("DB_PORT")
+		dbTCPHost = os.Getenv("DB_HOST")
+	)
+
+	dbURI := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		dbUser, dbPwd, dbTCPHost, dbPort, dbName)
+
 	// Get a database handle.
 	var err error
-	db, err = sql.Open("mysql", cfg.FormatDSN())
+	/* db, err = sql.Open("mysql", cfg.FormatDSN()) */ //For local MySQL
+	db, err = sql.Open("mysql", dbURI)                 //For google MySQL
 	if err != nil {
 		log.Fatal(err)
 	}
