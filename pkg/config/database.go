@@ -24,6 +24,11 @@ type Post struct {
 	LastfmAttachment *json.RawMessage `json:"lastfmattachment"`
 }
 
+type User struct {
+	Userid   string `json:"userid"`
+	Username string `json:"username"`
+}
+
 func DbConnection() {
 	envErr := godotenv.Load() //Load .env file and error check
 	if envErr != nil {
@@ -143,6 +148,44 @@ func CreatePost(post Post) error {
 	}
 	if rowsAffected, err := res.RowsAffected(); err == nil && rowsAffected == 0 {
 		return errors.New("No post was created")
+	} else {
+		return nil
+	}
+}
+
+func GetUser(id string) bool {
+	var user User
+	err := db.QueryRow("SELECT * FROM user WHERE userid = ?", id).Scan(&user.Userid, &user.Username)
+	if err != nil {
+		return false
+	}
+	log.Println(user)
+	if user.Userid == id {
+		return true
+	} else {
+		return false
+	}
+}
+
+func CreateUser(user User) error {
+	res, err := db.Exec("INSERT INTO user (userid, username) VALUES (?, ?)", user.Userid, user.Username)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if rowsAffected, err := res.RowsAffected(); err == nil && rowsAffected == 0 {
+		return errors.New("No user was created")
+	} else {
+		return nil
+	}
+}
+
+func UpdateUser(updatedUser User) error {
+	res, err := db.Exec("UPDATE user SET username = ? WHERE userid = ?", updatedUser.Username, updatedUser.Userid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if rowsAffected, err := res.RowsAffected(); err == nil && rowsAffected == 0 {
+		return errors.New("No user was created")
 	} else {
 		return nil
 	}

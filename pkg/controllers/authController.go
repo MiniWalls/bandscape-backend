@@ -74,6 +74,8 @@ func GetAuth(c *gin.Context) {
 		return
 	}
 
+	RegisterUser(body)
+
 	//Instead of IndentedJSON we use Data so we can convert the byte slice to json.
 	c.Header("Content-Type", "application/json")
 	c.Data(http.StatusOK, "application/json", body)
