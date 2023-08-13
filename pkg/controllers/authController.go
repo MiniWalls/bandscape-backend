@@ -4,31 +4,20 @@ import (
 	utils "bandscape-backend/pkg/utils"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func GetToken(c *gin.Context) {
-	envErr := godotenv.Load() //Load .env file and error check
-	if envErr != nil {
-		log.Fatal("Error loading .env file")
-	}
 	redirectURL := "http://www.lastfm.com/api/auth/?api_key=" + os.Getenv("LASTFM_API_KEY") + "&cb=" + os.Getenv("LASTFM_CALLBACK_URL")
 	c.Redirect(http.StatusFound, redirectURL)
 }
 
 func GetAuth(c *gin.Context) {
 	token := c.Query("token")
-
-	envErr := godotenv.Load() //Load .env file and error check
-	if envErr != nil {
-		log.Fatal("Error loading .env file")
-	}
 
 	api_key := os.Getenv("LASTFM_API_KEY")
 
@@ -73,6 +62,8 @@ func GetAuth(c *gin.Context) {
 		fmt.Println("Error reading the response body:", err)
 		return
 	}
+
+	RegisterUser(body)
 
 	//Instead of IndentedJSON we use Data so we can convert the byte slice to json.
 	c.Header("Content-Type", "application/json")

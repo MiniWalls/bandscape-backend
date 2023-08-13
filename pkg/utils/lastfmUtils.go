@@ -4,13 +4,10 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"net/url"
 	"os"
 	"sort"
 	"strings"
-
-	"github.com/joho/godotenv"
 )
 
 // Creates api signature used to get user session key
@@ -31,11 +28,7 @@ func CreateApiSignature(params map[string]string) string {
 
 	encodedParams := url.QueryEscape(concated)
 
-	//Append secret
-	envErr := godotenv.Load() //Load .env file and error check
-	if envErr != nil {
-		log.Fatal("Error loading .env file")
-	}
+	//Append secret key
 	encodedParams += os.Getenv("LASTFM_API_SECRET")
 
 	//Hash with md5
