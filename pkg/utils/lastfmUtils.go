@@ -40,6 +40,7 @@ func CreateApiSignature(params map[string]string) string {
 }
 
 // Creates query string used in lastfm api requests
+// Currently errors from not handling spaces correctly
 func CreateQueryString(params map[string]string) string {
 	//Parameters sorted alphabetically
 	var keys []string
@@ -52,7 +53,7 @@ func CreateQueryString(params map[string]string) string {
 	var concated string
 	for _, k := range keys {
 		fmt.Println(k, params[k])
-		concated += k + "=" + params[k] + "&"
+		concated += k + "=" + url.QueryEscape(params[k]) + "&"
 	}
 
 	encodedParams := strings.TrimSuffix(concated, "&")
